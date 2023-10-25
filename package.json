@@ -1,0 +1,20 @@
+{
+  "name": "spellforgejs",
+  "version": "1.0.0",
+  "description": "SpellForge Client Library",
+  "main": "lib/spellforge.js",
+  "author": "Johnson Wang",
+  "license": "MIT",
+  "scripts": {
+    "build": "babel src --out-dir lib"
+  },
+  "dependencies": {
+    "axios": "^1.5.1",
+    "openai": "^4.14.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.23.0",
+    "@babel/core": "^7.23.2",
+    "@babel/preset-env": "^7.23.2"
+  }
+}
