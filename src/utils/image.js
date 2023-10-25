@@ -7,6 +7,13 @@ export const base64Raw2URL = (base64, mimeType = 'image/png') => {
   return `data:${mimeType};base64,${base64}`;
 }
 
+export const base64URL2Raw = (base64URL) => {
+  if(!base64URL.startsWith('data:')) throw new Error('Incorrect base64 URL format.');
+  const [type, base64] = base64URL.split(',');
+  if(!base64) throw new Error('Incorrect base64 URL format.');
+  return base64;
+}
+
 export const imageURL2Base64URL = async (url) => {
   const response = await axios.get(url, { responseType: 'arraybuffer' });
   const base64 = Buffer.from(response.data, 'binary').toString('base64');
@@ -43,4 +50,79 @@ export const imageFile2Base64URL = async (file) => {
   });
 };
 
-export const removeInfoFromBase64URL = () => {}
+const parseParameters = (parameters) => {
+  if(!parameters) return {};
+  const COLUMNS = {
+    'Negative prompt': 'negative_prompt', 
+    'Steps': 'steps', // int
+    'Sampler': 'sampler_index',  
+    'CFG scale': 'cfg_scale', // float
+    'Seed': 'seed', // int
+    'Size': 'size', 
+    'Model hash': 'model_hash'
+  };
+  const indexOfNegative = parameters.indexOf('Negative prompt:');
+  const indexofSteps = parameters.indexOf('Steps:');
+  const hasNegative = indexOfNegative >= 0;
+  const promptEndIndex = hasNegative ? indexOfNegative : indexofSteps;
+  
+  const prompt = parameters.substr(0, promptEndIndex);
+  const negative_prompt = hasNegative ? 
+    { negative_prompt: parameters.substr(indexOfNegative, indexofSteps - indexOfNegative).split(':')[1].trim() } : 
+    {};
+    
+  const rest = parameters.substr(indexofSteps);
+  
+  const columns = rest.split(',').map(pair => {
+
+    const [key, value] = pair.split(':').map(v => v.trim());
+    
+    if(key === 'Size') {
+      const [width, height] = value.split('x').map(v => parseInt(v));
+      return { width, height };
+    }
+
+    if(key === 'Model hash') {
+      return {
+        override_settings: {
+          sd_model_checkpoint: value
+        }
+      };
+    }
+
+    if(['CFG scale'].indexOf(key) >= 0) {
+      return ({[COLUMNS[key]]:parseFloat(value)});
+    }
+
+    if(['Steps', 'Seed'].indexOf(key) >= 0) {
+      return ({[COLUMNS[key]]:parseInt(value)});
+    }
+
+    return ({[COLUMNS[key]]:value});
+
+  }).reduce((p,v) => ({...p, ...v}), {});
+
+  return {
+    prompt,
+    ...negative_prompt,
+    ...columns
+  };
+}
+
+export const infoFromBase64URL = (base64URL) => {
+  const buffer = new Uint8Array(Buffer.from(base64URL2Raw(base64URL), 'base64'));
+  const parameters = getMetadata(buffer, 'parameters');
+  const info = parseParameters(parameters);
+  return info;
+}
+
+export const updateInfoOfBase64URL = (base64URL, info = {}) => {
+  let buffer = new Uint8Array(Buffer.from(base64URL2Raw(base64URL), 'base64'));
+  for(let key in info)
+    buffer = addMetadata(buffer, key, info[key]);
+  const base64 = Buffer.from(buffer).toString('base64');
+  return base64Raw2URL(base64, mimeType);
+}
+
+export const removeInfoOfBase64URL = (base64URL) =>
+  updateInfoOfBase64URL(base64URL, { parameters: '' });
