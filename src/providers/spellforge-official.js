@@ -46,7 +46,7 @@ const sfapi = (options) => {
         }
         
         const images = !!result?.images ? 
-          result.images.map(base64Raw2URL) : [];
+          result.images.map(base64 => base64Raw2URL(base64)) : [];
 
         return { images };
       })(),
