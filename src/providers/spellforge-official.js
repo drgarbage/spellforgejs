@@ -1,6 +1,6 @@
 import axios from "axios";
 import { DEFAULT_HOST } from '../constants';
-import { sleep } from "../utils";
+import { base64Raw2URL, sleep } from "../utils";
 
 const sfapi = (options) => {
   const opt = {
@@ -34,17 +34,21 @@ const sfapi = (options) => {
         while (!interrupt && progress < 1) {
           try{
             await sleep(interval);
-            const response = await adpt.get(`/api/aigc/${taskId}/result`);
-            progress = response.data.progress;
-            progressImage = response.data.progressImage;
-            result = response.data.result;
+            const { data } = await adpt.get(`/api/aigc/${taskId}/result`);
+            progress = data.progress;
+            progressImage = data.progressImage;
+            result = data.result;
             if(typeof options.onProgress == 'function')
-              options.onProgress(Math.round(progress * 100), progressImage);
+              options.onProgress(Math.round(progress * 100), !!progressImage && base64Raw2URL(progressImage));
           }catch(err){
             console.error(err);
           }
         }
-        return result;
+        
+        const images = !!result?.images ? 
+          result.images.map(base64Raw2URL) : [];
+
+        return { images };
       })(),
       new Promise((_r, rej) => timer = setTimeout(() => rej('Operation Timeout.'), timeout))
     ]).finally(() => {
