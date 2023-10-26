@@ -23,11 +23,11 @@ const api = (options) => {
     }
   });
 
-  const task = async (api, params, options = {}) => {
+  const task = async (service, params, options = {}) => {
     const { timeout = 20000, interval = 1000 } = options;
     let timer, interrupt = false;
     let { id: taskId, progress, result } = 
-      await adpt('/api/aigc', { method: 'POST', body: { api, params, mode: 'pass' } });
+      await adpt('/api/aigc', { method: 'POST', body: { api: service, params, mode: 'pass' } });
 
     return Promise.race([
       (async () => {
