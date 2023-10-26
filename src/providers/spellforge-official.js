@@ -26,17 +26,23 @@ const sfapi = (options) => {
   const task = async (api, params, options = {}) => {
     const { timeout = 20000, interval = 1000 } = options;
     let timer, interrupt = false;
-    let data = await adpt('/api/aigc', { method: 'POST', data: { api, params, mode: 'pass' } });
-    let { id: taskId, progress, result } = data;
+    let response = await adpt.post('/api/aigc', { api, params, mode: 'pass' } );
+    let { id: taskId, progress, result } = response.data;
 
     return Promise.race([
       (async () => {
         while (!interrupt && progress < 1) {
-          await sleep(interval);
-          const data = await adpt(`/api/aigc/${taskId}/result`);
-          progress = data.progress;
-          progressImage = data.progressImage;
-          result = data.result;
+          try{
+            await sleep(interval);
+            const response = await adpt.get(`/api/aigc/${taskId}/result`);
+            progress = response.data.progress;
+            progressImage = response.data.progressImage;
+            result = response.data.result;
+            if(typeof options.onProgress == 'function')
+              options.onProgress(Math.round(progress * 100), progressImage);
+          }catch(err){
+            console.error(err);
+          }
         }
         return result;
       })(),
