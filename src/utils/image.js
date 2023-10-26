@@ -50,7 +50,7 @@ export const imageFile2Base64URL = async (file) => {
   });
 };
 
-const parseParameters = (parameters) => {
+export const parseSDParameters = (parameters) => {
   if(!parameters) return {};
   const COLUMNS = {
     'Negative prompt': 'negative_prompt', 
@@ -110,10 +110,39 @@ const parseParameters = (parameters) => {
 }
 
 export const infoFromBase64URL = (base64URL) => {
-  const buffer = new Uint8Array(Buffer.from(base64URL2Raw(base64URL), 'base64'));
-  const parameters = getMetadata(buffer, 'parameters');
-  const info = parseParameters(parameters);
-  return info;
+  const buffer = Buffer.from(base64URL2Raw(base64URL), "base64");
+  const signature = Buffer.from(buffer.subarray(0, 8));
+  const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+
+  if (!signature.equals(pngSignature)) {
+    throw new Error("Not a valid PNG file.");
+  }
+
+  let metadata = {};
+  let position = 8;
+
+  while (position < buffer.length) {
+    const beginPos = position;
+    const chunkLength = buffer.readUInt32BE(position);
+    position += 4;
+
+    const chunkType = Buffer.from(buffer.subarray(position, position + 4)).toString("ascii");
+    position += 4;
+
+    const chunkData = buffer.subarray(position, position + chunkLength);
+    position += chunkLength;
+
+    position += 4; // Skip CRC
+
+    if (chunkType === "tEXt") {
+      const separatorIndex = chunkData.indexOf(0);
+      const key = Buffer.from(chunkData.subarray(0, separatorIndex)).toString("ascii");
+      const value = Buffer.from(chunkData.subarray(separatorIndex + 1)).toString("ascii");
+      metadata[key] = value;
+    }
+  }
+
+  return metadata;
 }
 
 export const updateInfoOfBase64URL = (base64URL, info = {}) => {
