@@ -1,6 +1,6 @@
 import axios from "axios";
 import { DEFAULT_HOST } from '../constants';
-import { base64Raw2URL, sleep } from "../utils";
+import { base64Raw2URL, imageURL2Base64URL, sleep } from "../utils";
 
 const sfapi = (options) => {
   const opt = {
@@ -13,9 +13,9 @@ const sfapi = (options) => {
   if(!opt.credential) throw new Error('Unauthorized.');
   
   const protocol = typeof(window) !== 'undefined' && window.location ? window.location.protocol : 'https:';
-
+  const baseURL = `${protocol}//${DEFAULT_HOST}`;
   const adpt = axios.create({
-    baseURL: `${protocol}//${DEFAULT_HOST}`,
+    baseURL,
     headers: {
       'Content-Type': 'application/json',
       'Authorization': opt.credential ? `Bearer ${opt.credential}` : undefined,
@@ -38,15 +38,21 @@ const sfapi = (options) => {
             progress = data.progress;
             progressImage = data.progressImage;
             result = data.result;
-            if(typeof options.onProgress == 'function')
-              options.onProgress(Math.round(progress * 100), !!progressImage && base64Raw2URL(progressImage));
+
+            if(typeof options.onProgress !== 'function') return;
+            if(!progressImage) return;
+            const imageURL = `${baseURL}/api/ipfs/${progressImage}`;
+            const progressImageBase64URL = await imageURL2Base64URL(imageURL);
+            options.onProgress(Math.round(progress * 100), progressImageBase64URL);
           }catch(err){
             console.error(err);
           }
         }
-        
-        const images = !!result?.images ? 
-          result.images.map(base64 => base64Raw2URL(base64)) : [];
+
+        if(!result?.images) return result;
+
+        const imageLoaders = result.images.map(cid => imageURL2Base64URL(`${baseURL}/api/ipfs/${cid}`));
+        const images = await Promise.all(imageLoaders);
 
         return { images };
       })(),
