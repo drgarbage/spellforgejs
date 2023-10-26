@@ -2,7 +2,7 @@ import axios from "axios";
 import { DEFAULT_HOST } from '../constants';
 import { sleep } from "../utils";
 
-const api = (options) => {
+const sfapi = (options) => {
   const opt = {
     apiKey: null,
     credential: null,
@@ -23,16 +23,16 @@ const api = (options) => {
     }
   });
 
-  const task = async (service, params, options = {}) => {
+  const task = async (api, params, options = {}) => {
     const { timeout = 20000, interval = 1000 } = options;
     let timer, interrupt = false;
     let { id: taskId, progress, result } = 
-      await adpt('/api/aigc', { method: 'POST', body: { api: service, params, mode: 'pass' } });
+      await adpt('/api/aigc', { method: 'POST', body: { api, params, mode: 'pass' } });
 
     return Promise.race([
       (async () => {
         while (!interrupt && progress < 1) {
-          await sleep(1000);
+          await sleep(interval);
           const data = await adpt(`/api/aigc/${taskId}/result`);
           progress = data.progress;
           progressImage = data.progressImage;
@@ -80,4 +80,4 @@ const api = (options) => {
   };
 }
 
-export default api;
+export default sfapi;
