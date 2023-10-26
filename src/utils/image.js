@@ -21,34 +21,34 @@ export const imageURL2Base64URL = async (url) => {
   return base64Raw2URL(base64, mimeType);
 }
 
-export const imageFile2Base64URL = async (file) => {
-  if (isNode) {
-    // todo: must install fs, file-type manually
-    const fs = require('fs').promises;
-    const data = await fs.readFile(file);
-    const fileType = require('file-type');
-    const mimeType = fileType(data)?.mime || 'application/octet-stream';
-    const base64 = Buffer.from(data).toString('base64');
-    return base64Raw2URL(base64, mimeType);
-  }
+// export const imageFile2Base64URL = async (file) => {
+//   if (isNode) {
+//     // todo: must install fs, file-type manually
+//     const fs = require('fs').promises;
+//     const data = await fs.readFile(file);
+//     const fileType = require('file-type');
+//     const mimeType = fileType(data)?.mime || 'application/octet-stream';
+//     const base64 = Buffer.from(data).toString('base64');
+//     return base64Raw2URL(base64, mimeType);
+//   }
 
-  if (isReactNative) {
-    // todo: must install react-native-fs manually
-    const RNFS = require('react-native-fs');
-    // 在 React Native 中，我们可能需要依赖其他方式来确定 MIME 类型
-    const base64 = await RNFS.readFile(file, 'base64');
-    const mimeType = 'image/png'; // 假设是 PNG，根据实际情况修改或动态确定
-    return base64Raw2URL(base64, mimeType);
-  }
+//   if (isReactNative) {
+//     // todo: must install react-native-fs manually
+//     const RNFS = require('react-native-fs');
+//     // 在 React Native 中，我们可能需要依赖其他方式来确定 MIME 类型
+//     const base64 = await RNFS.readFile(file, 'base64');
+//     const mimeType = 'image/png'; // 假设是 PNG，根据实际情况修改或动态确定
+//     return base64Raw2URL(base64, mimeType);
+//   }
 
-  // 在 Web 环境中
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = error => reject(error);
-  });
-};
+//   // 在 Web 环境中
+//   return new Promise((resolve, reject) => {
+//     const reader = new FileReader();
+//     reader.readAsDataURL(file);
+//     reader.onload = () => resolve(reader.result);
+//     reader.onerror = error => reject(error);
+//   });
+// };
 
 export const parseSDParameters = (parameters) => {
   if(!parameters) return {};
