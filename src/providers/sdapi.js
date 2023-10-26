@@ -19,18 +19,18 @@ const api = (options) => {
     }
   });
 
-  const task = async (url, body, options) => {
+  const task = async (url, params, options = {}) => {
     const { timeout = 20000, interval = 1000 } = options;
     
-    let timer, checker = !!options.onProgress && setInterval(async () => {
-      const { data } = await adpt.request(`/sdapi/v1/progress?skip_current_image=${!preview}`);
+    let timer, checker = typeof options.onProgress === 'function' && setInterval(async () => {
+      const { data } = await adpt.get(`/sdapi/v1/progress?skip_current_image=false`);
       const { progress, current_image } = data;
       const progressImage = !current_image ? undefined : base64Raw2URL(current_image);
       options.onProgress(Math.round(progress * 100), progressImage);
     }, interval);
 
     return Promise.race([
-      adpt.request(url, body).then(rs => resolve(rs.data)),
+      adpt.request(url, params).then(rs => rs.data),
       new Promise((_r, rej) => timer = setTimeout(() => rej('Operation Timeout.'), timeout))
     ]).finally(() => {
       clearTimeout(timer);
@@ -39,21 +39,21 @@ const api = (options) => {
   }
 
   return {
-    txt2img: (body, options) => task('/sdapi/v1/txt2img', {method: 'POST', body}),
-    img2img: (body, options) => task('/sdapi/v1/img2img', {method: 'POST', body}),
-    upscale: (body, options) => task('/sdapi/v1/extra-single-image', {method: 'POST', body}),
+    txt2img: (data, options) => task('/sdapi/v1/txt2img', {method: 'POST', data}),
+    img2img: (data, options) => task('/sdapi/v1/img2img', {method: 'POST', data}),
+    upscale: (data, options) => task('/sdapi/v1/extra-single-image', {method: 'POST', data}),
     samplers: () => adpt.request('/sdapi/v1/samplers').then(rs => rs.data),
     upscalers: () => adpt.request('/sdapi/v1/upscalers').then(rs => rs.data),
     sdmodels: () => adpt.request('/sdapi/v1/sd-models').then(rs => rs.data),
     embeddings: () => adpt.request('/sdapi/v1/embeddings').then(rs => rs.data), 
-    interrogate: (image, model = 'clip') => adpt.request('/sdapi/v1/interrogate', {method: 'POST', body: {image, model}}).then(rs => rs.data),
+    interrogate: (image, model = 'clip') => adpt.request('/sdapi/v1/interrogate', {method: 'POST', data: {image, model}}).then(rs => rs.data),
     progress: (preview = false) => adpt.request(`/sdapi/v1/progress?skip_current_image=${!preview}`).then(rs => rs.data),
     infos: async () => {
       const infopaths = {
-        'samplers': '/adapi/v1/samplers',
-        'upscalers': '/adapi/v1/upscalers',
-        'sdmodels': '/adapi/v1/sd-models',
-        'embeddings': '/adapi/v1/embeddings'
+        'samplers': '/sdapi/v1/samplers',
+        'upscalers': '/sdapi/v1/upscalers',
+        'sdmodels': '/sdapi/v1/sd-models',
+        'embeddings': '/sdapi/v1/embeddings'
       };
       const results = await Promise.all(
         Object
