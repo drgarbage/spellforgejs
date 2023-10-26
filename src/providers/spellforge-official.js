@@ -11,9 +11,11 @@ const api = (options) => {
 
   if(!opt.apiKey) throw new Error('API Key is required.');
   if(!opt.credential) throw new Error('Unauthorized.');
+  
+  const protocol = typeof(window) !== 'undefined' && window.location ? window.location.protocol : 'https:';
 
   const adpt = axios.create({
-    baseURL: DEFAULT_HOST,
+    baseURL: `${protocol}//${DEFAULT_HOST}`,
     headers: {
       'Content-Type': 'application/json',
       'Authorization': opt.credential ? `Bearer ${opt.credential}` : undefined,
