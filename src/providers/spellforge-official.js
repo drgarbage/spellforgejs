@@ -27,7 +27,7 @@ const sfapi = (options) => {
     const { timeout = 20000, interval = 1000 } = options;
     let timer, interrupt = false;
     let response = await adpt.post('/api/aigc', { api, params, mode: 'pass' } );
-    let { id: taskId, progress, result } = response.data;
+    let { id: taskId, progress, progressImage, result } = response.data;
 
     return Promise.race([
       (async () => {
