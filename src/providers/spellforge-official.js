@@ -39,8 +39,8 @@ const sfapi = (options) => {
             progressImage = data.progressImage;
             result = data.result;
 
-            if(typeof options.onProgress !== 'function') return;
-            if(!progressImage) return;
+            if(typeof options.onProgress !== 'function') continue;
+            if(!progressImage) continue;
             const imageURL = `${baseURL}/api/ipfs/${progressImage}`;
             const progressImageBase64URL = await imageURL2Base64URL(imageURL);
             options.onProgress(Math.round(progress * 100), progressImageBase64URL);
@@ -49,14 +49,14 @@ const sfapi = (options) => {
           }
         }
 
-        if(!result?.images) return result;
+        if(!result.images) return result;
 
         const imageLoaders = result.images.map(cid => imageURL2Base64URL(`${baseURL}/api/ipfs/${cid}`));
         const images = await Promise.all(imageLoaders);
 
-        return { images };
+        return { ...result, images };
       })(),
-      new Promise((_r, rej) => timer = setTimeout(() => rej('Operation Timeout.'), timeout))
+      new Promise((_r, rej) => timer = setTimeout(() => rej(new Error('Operation Timeout.')), timeout))
     ]).finally(() => {
       clearTimeout(timer);
       interrupt = true;
