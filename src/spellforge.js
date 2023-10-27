@@ -39,6 +39,7 @@ const api = (options) => {
       provider = sdapi(options);
       break;
     case PROVIDERS.SPELLFORGE: 
+    default:
       console.log(spellforgeOfficial);
       provider = spellforgeOfficial(options);
       break;
