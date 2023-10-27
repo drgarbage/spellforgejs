@@ -45,13 +45,7 @@ const api = (options) => {
       break;
   }
 
-  return {
-    providers: () => PROVIDERS.values(),
-    txt2img: (body, options) => provider.txt2img(body, options),
-    img2img: (body, options) => provider.img2img(body, options),
-    upscale: (body, options) => provider.upscale(body, options),
-    infos: () => provider.infos(),
-  };
+  return provider;
 }
 
 export default api;
