@@ -9,7 +9,7 @@ const parseParams = (p) => {
     advanceOptions,
     requirements
   } = p;
-  const [width, height] = size ? size.split('x').map(parseInt) : [undefined, undefined];
+  const [width, height] = size ? size.split('x').map((item) => parseInt(item) || undefined) : [undefined, undefined];
   const init_images = image ? [image] : undefined;
   const resize_mode = resize ? ['fill','cover','contain'].indexOf(resize) : undefined;
   const params = {
