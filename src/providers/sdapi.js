@@ -49,7 +49,7 @@ const api = (options) => {
       const { data } = await adpt.get(`/sdapi/v1/progress?skip_current_image=false`);
       const { progress, current_image } = data;
       const progressImage = !current_image ? undefined : base64Raw2URL(current_image);
-      options.onProgress(Math.round(progress * 100), progressImage);
+      options.onProgress(progress, progressImage);
     }, interval);
 
     return Promise.race([

@@ -60,7 +60,7 @@ const sfapi = (options) => {
           try{
             await sleep(interval);
             const { data } = await adpt.get(`/api/aigc/${taskId}/result`);
-            progress = Math.round(data.progress * 100);
+            progress = data.progress;
             progressImage = data.progressImage;
             result = data.result;
 
