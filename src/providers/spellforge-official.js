@@ -73,7 +73,7 @@ const sfapi = (options) => {
               options.onProgress(progress);
             }
           }catch(err){
-            console.error('spellforge error:', err);
+            console.error('spellforge: error:', err);
           }
         }
 
@@ -84,10 +84,14 @@ const sfapi = (options) => {
 
         return { ...result, images };
       })(),
-      new Promise((_r, rej) => timer = setTimeout(() => rej(new Error('Operation Timeout.')), timeout))
+      new Promise((_r, rej) => timer = setTimeout(() => {
+        interrupt = true;
+        console.log('spellforge: interrupt with timeout.');
+        rej(new Error('Operation Timeout.'));
+      }, timeout))
     ]).finally(() => {
       clearTimeout(timer);
-      interrupt = true;
+      console.log('spellforge: finished');
     });
   };
 
