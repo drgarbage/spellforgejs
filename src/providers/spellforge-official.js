@@ -56,7 +56,7 @@ const sfapi = (options) => {
 
     return Promise.race([
       (async () => {
-        while (!interrupt && progress < 1) {
+        while (!interrupt && !result?.images?.[0] && progress < 1) {
           try{
             await sleep(interval);
             const { data } = await adpt.get(`/api/aigc/${taskId}/result`);
