@@ -22,7 +22,9 @@ const parseParams = (p) => {
     ...advanceOptions,
   };
 
-  return removeUndefined(params);
+  removeUndefined(params);
+  
+  return params;
 }
 
 const sfapi = (options) => {
