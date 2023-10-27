@@ -1,6 +1,6 @@
-const dalle = require('./providers/dalle');
-const sdapi = require('./providers/sdapi');
-const sf = require('./providers/spellforge-official');
+import dalle from './providers/dalle';
+import sdapi from './providers/sdapi';
+import spellforgeOfficial from './providers/spellforge-official';
 
 const txt2imgParams = {
   prompt: 'a beautiful painting',
@@ -39,7 +39,8 @@ const api = (options) => {
       provider = sdapi(options);
       break;
     case PROVIDERS.SPELLFORGE: 
-      provider = sf(options);
+      console.log(spellforgeOfficial);
+      provider = spellforgeOfficial(options);
       break;
   }
 
