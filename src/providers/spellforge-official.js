@@ -77,7 +77,7 @@ const sfapi = (options) => {
           }
         }
 
-        if(!result.images) return result;
+        if(!result?.images) return result;
 
         const imageLoaders = result.images.map(cid => imageURL2Base64URL(`${baseURL}/api/ipfs/${cid}`));
         const images = await Promise.all(imageLoaders);
