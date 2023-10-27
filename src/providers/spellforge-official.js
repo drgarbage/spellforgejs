@@ -60,15 +60,18 @@ const sfapi = (options) => {
           try{
             await sleep(interval);
             const { data } = await adpt.get(`/api/aigc/${taskId}/result`);
-            progress = data.progress;
+            progress = Math.round(data.progress * 100);
             progressImage = data.progressImage;
             result = data.result;
 
             if(typeof options.onProgress !== 'function') continue;
-            if(!progressImage) continue;
-            const imageURL = `${baseURL}/api/ipfs/${progressImage}`;
-            const progressImageBase64URL = await imageURL2Base64URL(imageURL);
-            options.onProgress(Math.round(progress * 100), progressImageBase64URL);
+            if(progressImage) {
+              const imageURL = `${baseURL}/api/ipfs/${progressImage}`;
+              const progressImageBase64URL = await imageURL2Base64URL(imageURL);
+              options.onProgress(progress, progressImageBase64URL);
+            } else {
+              options.onProgress(progress);
+            }
           }catch(err){
             console.error(err);
           }
