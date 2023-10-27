@@ -73,7 +73,7 @@ const sfapi = (options) => {
               options.onProgress(progress);
             }
           }catch(err){
-            console.error(err);
+            console.error('spellforge error:', err);
           }
         }
 
