@@ -1,7 +1,30 @@
 import axios from "axios";
-import { base64Raw2URL } from "../utils";
+import { base64Raw2URL, removeUndefined } from "../utils";
 
 const LOCALHOST = 'http://localhost:7680';
+
+const parseParams = (p) => {
+  const { 
+    prompt, size, n,
+    image, mask, resize,
+    advanceOptions,
+    requirements
+  } = p;
+  const [width, height] = size ? size.split('x') : [undefined, undefined];
+  const init_images = image ? [image] : undefined;
+  const resize_mode = resize ? ['fill','cover','contain'].indexOf(resize) : undefined;
+  const params = {
+    prompt,
+    width, height,
+    n_iter: n,
+    init_images,
+    mask,
+    resize_mode,
+    ...advanceOptions,
+  };
+
+  return removeUndefined(params);
+}
 
 const api = (options) => {
   const opt = {
@@ -39,9 +62,9 @@ const api = (options) => {
   }
 
   return {
-    txt2img: (data, options) => task('/sdapi/v1/txt2img', {method: 'POST', data}),
-    img2img: (data, options) => task('/sdapi/v1/img2img', {method: 'POST', data}),
-    upscale: (data, options) => task('/sdapi/v1/extra-single-image', {method: 'POST', data}),
+    txt2img: (data, options) => task('/sdapi/v1/txt2img', {method: 'POST', data: parseParams(data)}),
+    img2img: (data, options) => task('/sdapi/v1/img2img', {method: 'POST', data: parseParams(data)}),
+    upscale: (data, options) => task('/sdapi/v1/extra-single-image', {method: 'POST', data: parseParams(data)}),
     samplers: () => adpt.request('/sdapi/v1/samplers').then(rs => rs.data),
     upscalers: () => adpt.request('/sdapi/v1/upscalers').then(rs => rs.data),
     sdmodels: () => adpt.request('/sdapi/v1/sd-models').then(rs => rs.data),

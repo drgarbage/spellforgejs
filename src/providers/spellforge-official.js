@@ -1,6 +1,29 @@
 import axios from "axios";
 import { DEFAULT_HOST } from '../constants';
-import { base64Raw2URL, imageURL2Base64URL, sleep } from "../utils";
+import { base64Raw2URL, imageURL2Base64URL, removeUndefined, sleep } from "../utils";
+
+const parseParams = (p) => {
+  const { 
+    prompt, size, n,
+    image, mask, resize,
+    advanceOptions,
+    requirements
+  } = p;
+  const [width, height] = size ? size.split('x') : [undefined, undefined];
+  const init_images = image ? [image] : undefined;
+  const resize_mode = resize ? ['fill','cover','contain'].indexOf(resize) : undefined;
+  const params = {
+    prompt,
+    width, height,
+    n_iter: n,
+    init_images,
+    mask,
+    resize_mode,
+    ...advanceOptions,
+  };
+
+  return removeUndefined(params);
+}
 
 const sfapi = (options) => {
   const opt = {
@@ -64,9 +87,9 @@ const sfapi = (options) => {
   };
 
   return {
-    txt2img: (body, options) => task('txt2img', body, options),
-    img2img: (body, options) => task('img2img', body, options),
-    upscale: (body, options) => task('img2img', body, options),
+    txt2img: (body, options) => task('txt2img', parseParams(body), options),
+    img2img: (body, options) => task('img2img', parseParams(body), options),
+    upscale: (body, options) => task('img2img', parseParams(body), options),
     samplers: () => adpt.request('/api/aigc/samplers').then(rs => rs.data),
     upscalers: () => adpt.request('/api/aigc/upscalers').then(rs => rs.data),
     sdmodels: () => adpt.request('/api/aigc/sd-models').then(rs => rs.data),
