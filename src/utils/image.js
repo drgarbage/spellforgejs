@@ -81,7 +81,7 @@ export const parseSDParameters = (parameters) => {
   };
 }
 
-export const infoFromBAse64URL = async (base64URL) => {
+export const infoFromBase64URL = async (base64URL) => {
   const buffer = Buffer.from(base64URL2Raw(base64URL), "base64");
   const info = await ExifReader.load(buffer);
   return info;
