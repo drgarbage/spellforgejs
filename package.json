@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "axios": "^1.5.1",
+    "exifreader": "^4.15.0",
     "meta-png": "^1.0.6",
     "openai": "^4.14.0"
   },

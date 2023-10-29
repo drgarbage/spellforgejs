@@ -1,4 +1,5 @@
 import axios from "axios";
+import ExifReader from 'exifreader';
 
 const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
 const isReactNative = typeof navigator !== 'undefined' && navigator.product === 'ReactNative';
@@ -80,7 +81,13 @@ export const parseSDParameters = (parameters) => {
   };
 }
 
-export const infoFromBase64URL = (base64URL) => {
+export const infoFromBAse64URL = async (base64URL) => {
+  const buffer = Buffer.from(base64URL2Raw(base64URL), "base64");
+  const info = await ExifReader.load(buffer);
+  return info;
+}
+
+export const infoFromBase64URL_old = (base64URL) => {
   const buffer = Buffer.from(base64URL2Raw(base64URL), "base64");
   const signature = Buffer.from(buffer.subarray(0, 8));
   const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
@@ -126,3 +133,4 @@ export const updateInfoOfBase64URL = (base64URL, info = {}) => {
 
 export const removeInfoOfBase64URL = (base64URL) =>
   updateInfoOfBase64URL(base64URL, { parameters: '' });
+  
