@@ -58,12 +58,16 @@ const sfapi = (options) => {
       if(interrupt) return;
       if(typeof options.onProgress !== 'function') return;
       if(progress >= 1) return;
-      if(progressImage) {
-        const imageURL = `${baseURL}/api/ipfs/${progressImage}`;
-        const progressImageBase64URL = await imageURL2Base64URL(imageURL);
-        await options.onProgress(progress, progressImageBase64URL);
-      } else {
-        await options.onProgress(progress);
+      try{
+        if(progressImage) {
+          const imageURL = `${baseURL}/api/ipfs/${progressImage}`;
+          const progressImageBase64URL = await imageURL2Base64URL(imageURL).catch(() => "");
+          await options.onProgress(progress, progressImageBase64URL);
+        } else {
+          await options.onProgress(progress);
+        }
+      }catch(err){
+        console.error(err);
       }
     }
 
