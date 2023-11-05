@@ -65,6 +65,7 @@ const sfapi = (options) => {
             result = data.result;
 
             if(typeof options.onProgress !== 'function') continue;
+            if(progress >= 1) break;
             if(progressImage) {
               const imageURL = `${baseURL}/api/ipfs/${progressImage}`;
               const progressImageBase64URL = await imageURL2Base64URL(imageURL);
