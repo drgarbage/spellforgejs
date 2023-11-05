@@ -54,6 +54,19 @@ const sfapi = (options) => {
     let response = await adpt.post('/api/aigc', { api, params, mode: 'pass' } );
     let { id: taskId, progress, progressImage, result } = response.data;
 
+    const reportProgress = async (progress, progressImage) => {
+      if(interrupt) return;
+      if(typeof options.onProgress !== 'function') return;
+      if(progress >= 1) return;
+      if(progressImage) {
+        const imageURL = `${baseURL}/api/ipfs/${progressImage}`;
+        const progressImageBase64URL = await imageURL2Base64URL(imageURL);
+        await options.onProgress(progress, progressImageBase64URL);
+      } else {
+        await options.onProgress(progress);
+      }
+    }
+
     return Promise.race([
       (async () => {
         while (!interrupt && !result?.images?.[0] && progress < 1) {
@@ -63,36 +76,31 @@ const sfapi = (options) => {
             progress = data.progress;
             progressImage = data.progressImage;
             result = data.result;
-
-            if(typeof options.onProgress !== 'function') continue;
-            if(progress >= 1) break;
-            if(progressImage) {
-              const imageURL = `${baseURL}/api/ipfs/${progressImage}`;
-              const progressImageBase64URL = await imageURL2Base64URL(imageURL);
-              options.onProgress(progress, progressImageBase64URL);
-            } else {
-              options.onProgress(progress);
-            }
+            await reportProgress(progress, progressImage);
           }catch(err){
             console.error('spellforge: error:', err);
           }
         }
+        interrupt = true;
 
         if(!result?.images) return result;
 
         const imageLoaders = result.images.map(cid => imageURL2Base64URL(`${baseURL}/api/ipfs/${cid}`));
         const images = await Promise.all(imageLoaders);
 
+        console.info('spellforge: complete');
         return { ...result, images };
       })(),
       new Promise((_r, rej) => timer = setTimeout(() => {
         interrupt = true;
-        console.log('spellforge: interrupt with timeout.');
+        console.info('spellforge: interrupt with timeout.');
         rej(new Error('Operation Timeout.'));
       }, timeout))
     ]).finally(() => {
       clearTimeout(timer);
-      console.log('spellforge: finished');
+      interrupt = true;
+      timer = null;
+      console.info('spellforge: finished');
     });
   };
 
