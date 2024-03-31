@@ -60,7 +60,7 @@ const sfapi = (options) => {
       if(progress >= 1) return;
       try{
         if(progressImage) {
-          const imageURL = `${baseURL}/api/ipfs/${progressImage}`;
+          const imageURL = progressImage;
           const progressImageBase64URL = await imageURL2Base64URL(imageURL).catch(() => "");
           await options.onProgress(progress, progressImageBase64URL);
         } else {
@@ -89,7 +89,7 @@ const sfapi = (options) => {
 
         if(!result?.images) return result;
 
-        const imageLoaders = result.images.map(cid => imageURL2Base64URL(`${baseURL}/api/ipfs/${cid}`));
+        const imageLoaders = result.images.map(url => imageURL2Base64URL(url));
         const images = await Promise.all(imageLoaders);
 
         console.info('spellforge: complete');
